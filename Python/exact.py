@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # random
     game = Orchard()
     start = time()
-    mfo_rnd = game.play_all()
+    mfo_rnd = game.play()
     end = time()
     print("My First Orchard, random:")
     print("\texact result: p = {:.5f} (took {:.2f} s)".format(
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # smart
     game = Orchard(smart=True)
     start = time()
-    mfo_smt = game.play_all()
+    mfo_smt = game.play()
     end = time()
     print("My First Orchard, smart:")
     print("\texact result: p = {:.5f} (took {:.2f} s)".format(
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # random
     game = Orchard(raven_steps=10, fruit_pieces=10, basket=2)
     start = time()
-    o_rnd = game.play_all()
+    o_rnd = game.play()
     end = time()
     print("Orchard, random:")
     print("\texact result: p = {:.5f} (took {:.2f} s)".format(
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # smart
     game = Orchard(raven_steps=10, fruit_pieces=10, basket=2, smart=True)
     start = time()
-    o_smt = game.play_all()
+    o_smt = game.play()
     end = time()
     print("Orchard, smart:")
     print("\texact result: p = {:.5f} (took {:.2f} s)".format(
