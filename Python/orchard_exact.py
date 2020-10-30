@@ -39,10 +39,11 @@ class Orchard:
         while raven > 0:
             aux += [raven % ns]
             raven //= ns
-        aux = aux[::-1] + state[1:]
+
+        aux = state[1:] + aux
         n = 0
         for i in range(len(aux)):
-            n += aux[::-1][i] * (ns ** i)
+            n += aux[i] * (ns ** i)
         return n
 
     def to_state(self, n):
@@ -82,7 +83,7 @@ class Orchard:
                 will result from basket appearing on the die
         """
         # transitions are possible if there are raven steps or fruits left
-        possible_transitions = [int(r > 0) for r in state]
+        possible_transitions = [r > 0 for r in state]
         # available types of fruit
         available_fruits = sum(possible_transitions[1:])
 
@@ -91,9 +92,8 @@ class Orchard:
         # the die (conditioned on the event that the game state changes)
         p = 1 / (available_fruits + 2)  # 2 = 1 (raven) + 1 (basket)
 
-        tp = []  # transition probabilities
-        for i in range(5):
-            tp += [p if possible_transitions[i] else 0]
+        # transition probabilities
+        tp = [p if possible_transitions[i] else 0 for i in range(5)]
 
         # we have yet to consider the event when the basket appears on the die;
         # the corresponding probability p that still needs to be distributed
@@ -122,18 +122,16 @@ class Orchard:
             next_probs[self.to_decimal(current_state)] += p
 
         else:
-            tp = []  # transition probabilities
             if self.smart:
                 m = max(current_state[1:])
                 idx = [i for i, val in enumerate(
                     current_state[1:]) if val == m]
-                for i in range(4):
-                    tp += [p / len(idx) if i in idx else 0]
+                # transition probabilities
+                tp = [p / len(idx) if i in idx else 0 for i in range(4)]
             else:
                 # possible transitions
-                pt = [int(r > 0) for r in current_state[1:]]
-                for i in range(4):
-                    tp += [p / sum(pt) if pt[i] else 0]
+                pt = [r > 0 for r in current_state[1:]]
+                tp = [p / sum(pt) if pt[i] else 0 for i in range(4)]
 
             for i in range(4):
                 if tp[i] > 0:
