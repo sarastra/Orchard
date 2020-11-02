@@ -1,5 +1,4 @@
 suppressMessages(library(docstring))
-library(comprehenr)
 
 # number of steps the raven needs to take to reach the orchard
 initial.raven.steps <- 6
@@ -24,16 +23,15 @@ to.decimal <- function(state) {
   
   number.system <- initial.fruit.pieces + 1
   
-  aux <- vector()
+  aux <- c()
   raven.steps <- state[1]
   # we will first rewrite raven steps in the number.system
   while (raven.steps > 0) {
     aux <- c(aux, raven.steps %% number.system)
     raven.steps <- raven.steps %/% number.system
   }
-  aux <- c(rev(aux), state[2:5])
+  aux <- c(state[5:2], aux)
   
-  aux <- rev(aux)
   n <- 0
   for (i in 1:length(aux)) {
     n <- n + aux[i] * (number.system ** (i - 1))
@@ -77,7 +75,7 @@ raven.or.colour <- function(state) {
   #' element to the state with 1 apple less and so on
   
   # transitions are possible if there are raven steps or fruits left
-  possible.transitions <- as.integer(state > 0)
+  possible.transitions <- state > 0
   # number of available types of fruit
   available.types <- sum(possible.transitions[2:5])
   # this is conditional probability for each possible transition by 1 raven step
@@ -85,10 +83,9 @@ raven.or.colour <- function(state) {
   # on the event that the game state changes)
   p <- 1 / (available.types + 2)  # 2 = 1 (raven) + 1 (basket)
   
-  tp <- rep(NA, 5)  # transition probabilities
-  for (i in 1:5) {
-    tp[i] <- ifelse(possible.transitions[i], p, 0)
-  }
+  tp <- rep(0, 5)  # transition probabilities
+  idx <- which(possible.transitions)
+  tp[idx] <- p
   return(tp)
 }
 
@@ -111,27 +108,21 @@ basket.recursion <-
     #' @return updated probabilities of the game states on the next step
     
     if (fruits.to.pick == 0 || max(current.state[2:5]) == 0) {
-      next.probs[to.decimal(current.state)] <-
-        next.probs[to.decimal(current.state)] + p
+      idx <- to.decimal(current.state)
+      next.probs[idx] <-  next.probs[idx] + p
     } else {
-      tp = rep(NA, 4)  # transition probabilities
+      tp = rep(0, 4)  # transition probabilities
       
       # smart strategy
       if (smart.strategy) {
         m <- max(current.state[2:5])
-        idx <- to_vec(for (i in 2:5) if (current.state[i] == m) (i - 1))
-        for (i in 1:4) {
-          tp[i] <- ifelse(i %in% idx, p / length(idx), 0)
-        }
-        
-      } else {  # random strategy
-        possible.transitions <- as.integer(current.state[2:5] > 0)
-        p <- p / sum(possible.transitions)
-        tp <- rep(NA, 4)
-        for (i in 1:4) {
-          tp[i] <-
-            ifelse(possible.transitions[i], p, 0)
-        }
+        idx <- which(current.state[2:5] == m)
+        tp[idx] <-  p / length(idx)
+      } else {
+        # random strategy
+        possible.transitions <- current.state[2:5] > 0
+        tp <- rep(0, 4)
+        tp[possible.transitions] <- p / sum(possible.transitions)
       }
       
       # calculate (intermediate) probabilities
@@ -151,15 +142,15 @@ basket.recursion <-
 
 one.step <- function(n, current.prob, next.probs) {
   #' Probabilities on the next step
-  #' 
+  #'
   #' Computes probabilities for the game states on the next step.
-  #' 
+  #'
   #' @param n index of the game state
   #' @param current.prob probability of the game state with index n on current
   #' step
   #' @param next.probs probabilities of the game states on the next step
-  #' 
-  #' @return updated probabilities of the game states on the next step 
+  #'
+  #' @return updated probabilities of the game states on the next step
   
   current.state <- to.state(n)
   
@@ -178,11 +169,11 @@ one.step <- function(n, current.prob, next.probs) {
       if (tp[i] > 0) {
         next.state <- current.state
         next.state[i] <- next.state[i] - 1
-        next.probs[to.decimal(next.state)] <-
-          next.probs[to.decimal(next.state)] + current.prob * tp[i]
+        idx <- to.decimal(next.state)
+        next.probs[idx] <-  next.probs[idx] + current.prob * tp[i]
       }
     }
-
+    
     # contributions of transitions resulting from basket appearing on the die;
     # current.prob * bp = probability that we are in the state current.state and
     # that the next change of the game state results from basket
@@ -196,9 +187,9 @@ one.step <- function(n, current.prob, next.probs) {
 
 play <- function() {
   #' Probability of winning
-  #' 
+  #'
   #' Computes the probability of the players winning the game
-  #' 
+  #'
   #' @return probability that the players win
   
   # number of all possible game states
